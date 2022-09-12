@@ -13,6 +13,7 @@ strings = {
     "preview_button": "Preview",
     "codec_label": "Codec:",
     "convert_button": "Convert",
+    "stop_command_button": "Stop command",
     "dir_dialog_content_root": "Choose content root directory",
     "file_dialog_output_file": "Output file",
 
@@ -21,6 +22,7 @@ strings = {
     "toast_message_command_already_running": "Another command is running. Please end it first.",
     "toast_message_command_started": "Command Started.",
     "toast_message_command_finished": "Command finished.",
+    "toast_message_command_stopped": "Command stopped.",
 
     "toast_title_preview": "Preview",
     "toast_message_no_playlist": "No playlist selected!",

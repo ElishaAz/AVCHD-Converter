@@ -12,6 +12,7 @@ import tools
 from avchd.decoder import Decoder
 from avchd.playlist import Playlist
 from stdout_decoder import StdOutDecoder
+import signal
 
 CODEC_NAMES = [res.strings["codec_name_copy"], res.strings["codec_name_default"], res.strings["codec_name_gpu"]]
 CODECS = ["copy", None, "hevc_nvenc"]
@@ -26,6 +27,8 @@ VIDEO_FORMATS = "MPEG-4 (*.mp4; *.m4v)|*.mp4;*.m4v" + "|" + \
                 "Windows Media Video (*.wmv)|*.wmv"
 
 MAX_LOG_LENGTH = 1000
+
+COMMAND_STOP_SIGNAL = signal.CTRL_C_EVENT if hasattr(signal, "CTRL_C_EVENT") else signal.SIGINT
 
 
 # noinspection PyUnusedLocal
@@ -89,6 +92,13 @@ class MainWindow(wx.Frame):
         if stdout:
             self.toast(res.strings['toast_title_command'], res.strings['toast_message_command_finished'])
             self.log("\nCommand Finished!")
+
+    def stop_running_command(self, *args, **kwargs):
+        if self.process is None or self.process.poll() is not None:
+            return
+        self.process.send_signal(COMMAND_STOP_SIGNAL)
+        self.log("\nCommand manually stopped\n")
+        self.toast(res.strings['toast_title_command'], res.strings['toast_message_command_stopped'])
 
     def __init__(self):
         super().__init__(parent=None, title=res.strings["title"])
@@ -167,9 +177,10 @@ class MainWindow(wx.Frame):
         action_row.Add(self.choice_codec, 1, wx.ALL | wx.EXPAND, 1)
         self.button_convert = wx.Button(panel, label=res.strings['convert_button'])
         self.button_convert.Bind(wx.EVT_BUTTON, self.convert)
-        action_row.Add(self.button_convert, 0, wx.ALL | wx.CENTRE, 1)
+        action_row.Add(self.button_convert, 0, wx.ALL | wx.CENTER, 1)
         main_sizer.Add(action_row, 0, wx.ALL | wx.EXPAND, 4)
 
+        log_column = wx.BoxSizer(wx.VERTICAL)
         self.log_panel = wx.lib.scrolledpanel.ScrolledPanel(panel)
         log_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.label_log = wx.TextCtrl(self.log_panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
@@ -179,12 +190,17 @@ class MainWindow(wx.Frame):
         self.log_panel.SetSizer(log_sizer)
         self.log_panel.SetupScrolling()
         self.log_panel.SetAutoLayout(True)
-        main_sizer.Add(self.log_panel, 1, wx.ALL | wx.EXPAND, 5)
+        log_column.Add(self.log_panel, 1, wx.ALL | wx.EXPAND, 0)
+
+        self.button_stop_command = wx.Button(panel, label=res.strings['stop_command_button'])
+        self.button_stop_command.Bind(wx.EVT_BUTTON, self.stop_running_command)
+        log_column.Add(self.button_stop_command, 0, wx.ALL | wx.EXPAND, 0)
+        main_sizer.Add(log_column, 1, wx.ALL | wx.EXPAND, 5)
 
         self.label_toast = wx.StaticText(panel)
-        main_sizer.Add(self.label_toast, 0, wx.ALL | wx.EXPAND, 5)
         global TOAST_COLOR_REGULAR
         TOAST_COLOR_REGULAR = self.label_toast.GetForegroundColour()
+        main_sizer.Add(self.label_toast, 0, wx.ALL | wx.EXPAND, 5)
 
         panel.SetSizer(main_sizer)
 

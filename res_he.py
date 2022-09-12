@@ -13,6 +13,7 @@ strings = {
     "preview_button": "הצג",
     "codec_label": "Codec:",
     "convert_button": "המר",
+    "cancel_button": "עצור",
     "dir_dialog_content_root": "בחר תייקית תוכן",
     "file_dialog_output_file": "בחר קובץ פלט",
 
@@ -21,6 +22,7 @@ strings = {
     "toast_message_command_already_running": "פקודה אחרת רצה כרגע. אנא אצור אותה קודם",
     "toast_message_command_started": "הפקודה רצה",
     "toast_message_command_finished": "הפקודה סיימה",
+    "toast_message_command_stopped": "הפקודה נעצרה",
 
     "toast_title_preview": "הצגה",
     "toast_message_no_playlist": "לא נבחר פלייליסט!",
@@ -30,9 +32,9 @@ strings = {
     "toast_message_no_codec": "לא נבחר Codec!",
     "toast_message_invalid_output": "קובץ פלט לא תקין!",
 
-    "toast_message_sequence_list_updated" : "רשימת סרטונים עודכנה",
+    "toast_message_sequence_list_updated": "רשימת סרטונים עודכנה",
 
     "error": "שגיעה"
 }
 
-rtl= True
+rtl = True
