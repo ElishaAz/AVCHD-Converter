@@ -7,12 +7,13 @@ import wx
 import wx.adv
 import wx.lib.scrolledpanel
 
+import res
 import tools
 from avchd.decoder import Decoder
 from avchd.playlist import Playlist
 from stdout_decoder import StdOutDecoder
 
-CODEC_NAMES = ["Copy", "Default", "GPU"]
+CODEC_NAMES = [res.strings["codec_name_copy"], res.strings["codec_name_default"], res.strings["codec_name_gpu"]]
 CODECS = ["copy", None, "hevc_nvenc"]
 
 VIDEO_FORMATS = "MPEG-4 (*.mp4; *.m4v)|*.mp4;*.m4v" + "|" + \
@@ -50,7 +51,7 @@ class MainWindow(wx.Frame):
 
     def run_command(self, command: List[str]):
         if self.process is not None and self.process.poll() is None:
-            self.toast("Run Command", "Another command is running. Please end it first.")
+            self.toast(res.strings["toast_title_run_command"], res.strings["toast_message_command_running"])
             return
         self.log(F"Running command: '{' '.join(command)}':")
         self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -69,7 +70,9 @@ class MainWindow(wx.Frame):
         self.log(rest.decode())
 
     def __init__(self):
-        super().__init__(parent=None, title='AVCHD Converter')
+        super().__init__(parent=None, title=res.strings["title"])
+        self.SetLayoutDirection(wx.Layout_RightToLeft if res.rtl else wx.Layout_LeftToRight)
+
         self.playlist_paths: Optional[List[str]] = None
         self.playlist: Optional[Playlist] = None
         self.process: Optional[subprocess.Popen] = None
@@ -85,11 +88,11 @@ class MainWindow(wx.Frame):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.label_title = wx.StaticText(panel, label="AVCHD Converter")
+        self.label_title = wx.StaticText(panel, label=res.strings["title"])
         main_sizer.Add(self.label_title, 0, wx.ALL | wx.LEFT, 5)
 
         cr_row = wx.BoxSizer(wx.HORIZONTAL)
-        self.label_cr = wx.StaticText(panel, label="Content Root:")
+        self.label_cr = wx.StaticText(panel, label=res.strings['content_root_label'])
         cr_row.Add(self.label_cr, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
         # self.text_cr = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER | wx.TE_LEFT)
         # self.text_cr.Bind(wx.EVT_TEXT_ENTER, self.text_cr_enter)
@@ -98,13 +101,13 @@ class MainWindow(wx.Frame):
         self.combo_cr.Bind(wx.EVT_COMBOBOX, self.combo_cr_enter)
         self.combo_cr.Bind(wx.EVT_TEXT_ENTER, self.combo_cr_enter)
         cr_row.Add(self.combo_cr, 1, wx.ALL | wx.EXPAND, 1)
-        self.browse_cr = wx.Button(panel, label="Browse")
+        self.browse_cr = wx.Button(panel, label=res.strings["browse_button"])
         self.browse_cr.Bind(wx.EVT_BUTTON, self.browse_cr_pressed)
         cr_row.Add(self.browse_cr, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
         main_sizer.Add(cr_row, 0, wx.ALL | wx.EXPAND, 4)
 
         pl_row = wx.BoxSizer(wx.HORIZONTAL)
-        self.label_pl = wx.StaticText(panel, label="Playlist:")
+        self.label_pl = wx.StaticText(panel, label=res.strings['playlist_label'])
         pl_row.Add(self.label_pl, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
         self.choice_pl = wx.Choice(panel, choices=[])
         self.choice_pl.Bind(wx.EVT_CHOICE, self.choice_pl_changed)
@@ -112,34 +115,34 @@ class MainWindow(wx.Frame):
         main_sizer.Add(pl_row, 0, wx.ALL | wx.EXPAND, 4)
 
         sq_row = wx.BoxSizer(wx.HORIZONTAL)
-        self.label_sq = wx.StaticText(panel, label="Sequence:")
+        self.label_sq = wx.StaticText(panel, label=res.strings['sequence_label'])
         sq_row.Add(self.label_sq, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
         self.choice_sq = wx.Choice(panel, choices=[])
         sq_row.Add(self.choice_sq, 1, wx.ALL | wx.EXPAND, 1)
         main_sizer.Add(sq_row, 0, wx.ALL | wx.EXPAND, 4)
 
         output_row = wx.BoxSizer(wx.HORIZONTAL)
-        self.label_output = wx.StaticText(panel, label="Output File:")
+        self.label_output = wx.StaticText(panel, label=res.strings['output_file_label'])
         output_row.Add(self.label_output, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
         self.text_output = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER | wx.TE_LEFT)
         output_row.Add(self.text_output, 1, wx.ALL | wx.EXPAND, 1)
-        self.browse_output = wx.Button(panel, label="Browse")
+        self.browse_output = wx.Button(panel, label=res.strings["browse_button"])
         self.browse_output.Bind(wx.EVT_BUTTON, self.browse_output_pressed)
         output_row.Add(self.browse_output, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
         main_sizer.Add(output_row, 0, wx.ALL | wx.EXPAND, 4)
 
         action_row = wx.BoxSizer(wx.HORIZONTAL)
-        self.button_preview = wx.Button(panel, label='Preview')
+        self.button_preview = wx.Button(panel, label=res.strings['preview_button'])
         self.button_preview.Bind(wx.EVT_BUTTON, self.preview)
         action_row.Add(self.button_preview, 0, wx.ALL | wx.CENTER, 1)
         action_row.AddSpacer(10)
 
-        self.label_codec = wx.StaticText(panel, label="Codec:")
+        self.label_codec = wx.StaticText(panel, label=res.strings['codec_label'])
         action_row.Add(self.label_codec, 0, wx.ALL | wx.CENTRE, 1)
         self.choice_codec = wx.Choice(panel, choices=CODEC_NAMES)
         self.choice_codec.SetSelection(0)
         action_row.Add(self.choice_codec, 1, wx.ALL | wx.EXPAND, 1)
-        self.button_convert = wx.Button(panel, label="Convert")
+        self.button_convert = wx.Button(panel, label=res.strings['convert_button'])
         self.button_convert.Bind(wx.EVT_BUTTON, self.convert)
         action_row.Add(self.button_convert, 0, wx.ALL | wx.CENTRE, 1)
         main_sizer.Add(action_row, 0, wx.ALL | wx.EXPAND, 4)
@@ -161,10 +164,10 @@ class MainWindow(wx.Frame):
 
     def preview(self, event: wx.CommandEvent):
         if self.playlist_paths is None or self.playlist is None:
-            self.toast("Preview", "No playlist selected!")
+            self.toast(res.strings['toast_title_preview'], res.strings['toast_message_no_playlist'])
             return
         if self.choice_sq.GetSelection() == wx.NOT_FOUND:
-            self.toast("Preview", "No sequence selected!")
+            self.toast(res.strings['toast_title_preview'], res.strings['toast_message_no_sequence'])
             return
         sequence = self.playlist.sequences[self.choice_sq.GetSelection()]
         command = tools.preview_sequence(self.combo_cr.GetValue(), sequence)
@@ -172,18 +175,18 @@ class MainWindow(wx.Frame):
 
     def convert(self, event: wx.CommandEvent):
         if self.playlist_paths is None or self.playlist is None:
-            self.toast("Convert", "No playlist selected!")
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_playlist'])
             return
         if self.choice_sq.GetSelection() == wx.NOT_FOUND:
-            self.toast("Convert", "No sequence selected!")
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_sequence'])
             return
         if self.choice_codec.GetSelection() == wx.NOT_FOUND:
-            self.toast("Convert", "No codec selected!")
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_codec'])
             return
         file = self.text_output.GetValue()
         codec = CODECS[self.choice_codec.GetSelection()]
         if not os.path.exists(os.path.dirname(file)):
-            self.toast("Convert", "Output path not valid!")
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_invalid_output'])
             return
         sequence = self.playlist.sequences[self.choice_sq.GetSelection()]
         command = tools.convert_sequence(self.combo_cr.GetValue(), sequence, file, codec)
@@ -200,7 +203,8 @@ class MainWindow(wx.Frame):
         return choices
 
     def browse_cr_pressed(self, event: wx.CommandEvent):
-        dlg = wx.DirDialog(None, "Choose content root directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+        dlg = wx.DirDialog(None, res.strings['dir_dialog_content_root'], "",
+                           wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             self.combo_cr.SetValue(dlg.GetPath())
         dlg.Destroy()
@@ -242,7 +246,7 @@ class MainWindow(wx.Frame):
         # self.choice_sq_changed(None)
 
     def browse_output_pressed(self, event: wx.CommandEvent):
-        dlg = wx.FileDialog(self, "Output file", wildcard=VIDEO_FORMATS,
+        dlg = wx.FileDialog(self, res.strings['file_dialog_output_file'], wildcard=VIDEO_FORMATS,
                             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             self.text_output.SetValue(dlg.GetPath())

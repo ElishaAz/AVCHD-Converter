@@ -127,6 +127,7 @@ def external_drives() -> List[str]:
         d = F"/media/{os.getlogin()}"
         return [os.path.join(d, f) for f in os.listdir(d) if os.path.isdir(f)]
     if system == "Windows":
+        import string
         return ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
     if system == "Darwin":
         return [F"/Volumes/{f}" for f in os.listdir('/Volumes') if os.path.isdir(f)]
