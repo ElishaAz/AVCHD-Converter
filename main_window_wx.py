@@ -1,7 +1,7 @@
 import os.path
 import subprocess
 import threading
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import wx
 import wx.adv
@@ -16,6 +16,9 @@ from stdout_decoder import StdOutDecoder
 CODEC_NAMES = [res.strings["codec_name_copy"], res.strings["codec_name_default"], res.strings["codec_name_gpu"]]
 CODECS = ["copy", None, "hevc_nvenc"]
 
+TOAST_COLOR_ERROR: Tuple[int, int, int] = (255, 0, 0)
+TOAST_COLOR_REGULAR: Tuple[int, int, int]
+
 VIDEO_FORMATS = "MPEG-4 (*.mp4; *.m4v)|*.mp4;*.m4v" + "|" + \
                 "QuickTime (*.mov)|*.mov" + "|" + \
                 "AVI (*.avi)|*.avi" + "|" + \
@@ -27,11 +30,24 @@ MAX_LOG_LENGTH = 1000
 
 # noinspection PyUnusedLocal
 class MainWindow(wx.Frame):
-    def toast(self, title, message):
+    def toast(self, title=None, message=None, error=False):
         # notif = wx.adv.NotificationMessage(title=title, message=message, parent=self, flags=wx.ICON_ERROR)
         # notif.Show()
         # notif.Destroy()
-        self.log(F"\nError: {title}: {message}")
+        # self.log(F"\n{res.strings['error']}: {title}: {message}")
+        text: str
+
+        if title is None and message is None:
+            text = ""
+        elif message is None and title is not None:
+            text = title
+        elif message is not None and title is None:
+            text = message
+        else:
+            text = F"{title}: {message}"
+
+        self.label_toast.SetLabel(text)
+        self.label_toast.SetForegroundColour(TOAST_COLOR_ERROR if error else TOAST_COLOR_REGULAR)
         pass
 
     def log(self, line: str):
@@ -51,9 +67,11 @@ class MainWindow(wx.Frame):
 
     def run_command(self, command: List[str]):
         if self.process is not None and self.process.poll() is None:
-            self.toast(res.strings["toast_title_run_command"], res.strings["toast_message_command_running"])
+            self.toast(res.strings["toast_title_command"], res.strings["toast_message_command_already_running"],
+                       error=True)
             return
-        self.log(F"Running command: '{' '.join(command)}':")
+        self.toast(res.strings['toast_title_command'], res.strings['toast_message_command_started'])
+        self.log(F"Running command: '{' '.join(command)}':\n")
         self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.output_thread_stdout = threading.Thread(target=self.command_output_loop, args=[self.process, True])
         self.output_thread_stdout.start()
@@ -68,6 +86,9 @@ class MainWindow(wx.Frame):
                 self.log(char.decode())
         rest = pipe.read()
         self.log(rest.decode())
+        if stdout:
+            self.toast(res.strings['toast_title_command'], res.strings['toast_message_command_finished'])
+            self.log("\nCommand Finished!")
 
     def __init__(self):
         super().__init__(parent=None, title=res.strings["title"])
@@ -97,9 +118,11 @@ class MainWindow(wx.Frame):
         # self.text_cr = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER | wx.TE_LEFT)
         # self.text_cr.Bind(wx.EVT_TEXT_ENTER, self.text_cr_enter)
         # cr_row.Add(self.text_cr, 1, wx.ALL | wx.EXPAND, 1)
-        self.combo_cr = wx.ComboBox(panel, style=wx.CB_SORT | wx.TE_PROCESS_ENTER, choices=self.combo_cr_choices())
+        choices = self.combo_cr_choices()
+        self.combo_cr = wx.ComboBox(panel, style=wx.CB_SORT | wx.TE_PROCESS_ENTER, choices=choices)
         self.combo_cr.Bind(wx.EVT_COMBOBOX, self.combo_cr_enter)
         self.combo_cr.Bind(wx.EVT_TEXT_ENTER, self.combo_cr_enter)
+        # self.combo_cr.SetSize(wx.Size(max((len(c) for c in choices), default=-1), -1))
         cr_row.Add(self.combo_cr, 1, wx.ALL | wx.EXPAND, 1)
         self.browse_cr = wx.Button(panel, label=res.strings["browse_button"])
         self.browse_cr.Bind(wx.EVT_BUTTON, self.browse_cr_pressed)
@@ -158,16 +181,27 @@ class MainWindow(wx.Frame):
         self.log_panel.SetAutoLayout(True)
         main_sizer.Add(self.log_panel, 1, wx.ALL | wx.EXPAND, 5)
 
+        self.label_toast = wx.StaticText(panel)
+        main_sizer.Add(self.label_toast, 0, wx.ALL | wx.EXPAND, 5)
+        global TOAST_COLOR_REGULAR
+        TOAST_COLOR_REGULAR = self.label_toast.GetForegroundColour()
+
         panel.SetSizer(main_sizer)
+
+        if len(choices) > 0:
+            self.combo_cr.SetValue(choices[0])
+            self.combo_cr_enter(None)
+
+        self.SetSize(wx.Size(475, -1))
 
         self.Show()
 
     def preview(self, event: wx.CommandEvent):
         if self.playlist_paths is None or self.playlist is None:
-            self.toast(res.strings['toast_title_preview'], res.strings['toast_message_no_playlist'])
+            self.toast(res.strings['toast_title_preview'], res.strings['toast_message_no_playlist'], error=True)
             return
         if self.choice_sq.GetSelection() == wx.NOT_FOUND:
-            self.toast(res.strings['toast_title_preview'], res.strings['toast_message_no_sequence'])
+            self.toast(res.strings['toast_title_preview'], res.strings['toast_message_no_sequence'], error=True)
             return
         sequence = self.playlist.sequences[self.choice_sq.GetSelection()]
         command = tools.preview_sequence(self.combo_cr.GetValue(), sequence)
@@ -175,18 +209,18 @@ class MainWindow(wx.Frame):
 
     def convert(self, event: wx.CommandEvent):
         if self.playlist_paths is None or self.playlist is None:
-            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_playlist'])
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_playlist'], error=True)
             return
         if self.choice_sq.GetSelection() == wx.NOT_FOUND:
-            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_sequence'])
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_sequence'], error=True)
             return
         if self.choice_codec.GetSelection() == wx.NOT_FOUND:
-            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_codec'])
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_no_codec'], error=True)
             return
         file = self.text_output.GetValue()
         codec = CODECS[self.choice_codec.GetSelection()]
         if not os.path.exists(os.path.dirname(file)):
-            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_invalid_output'])
+            self.toast(res.strings['toast_title_convert'], res.strings['toast_message_invalid_output'], error=True)
             return
         sequence = self.playlist.sequences[self.choice_sq.GetSelection()]
         command = tools.convert_sequence(self.combo_cr.GetValue(), sequence, file, codec)
@@ -242,6 +276,8 @@ class MainWindow(wx.Frame):
         if selection is not wx.NOT_FOUND:
             self.choice_sq.AppendItems([str(s.date) for s in self.playlist.sequences])
         self.choice_sq.SetSelection(wx.NOT_FOUND if selection is wx.NOT_FOUND else 0)
+
+        self.toast(res.strings['toast_message_sequence_list_updated'])
 
         # self.choice_sq_changed(None)
 

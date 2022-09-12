@@ -9,7 +9,7 @@ import platform
 FFMPEG_COMMAND = "ffmpeg"
 FFPLAY_COMMAND = "ffplay"
 
-CONTENT_ROOT = ["AVCHD"]
+CONTENT_ROOT = ["PRIVATE", "AVCHD"]
 
 STREAMS_IN_CONTENT_ROOT = ["BDMV", "STREAM"]
 STREAM_EXT = ".MTS"
@@ -125,16 +125,12 @@ def external_drives() -> List[str]:
     system = platform.system()
     if system == "Linux":
         d = F"/media/{os.getlogin()}"
-        return [os.path.join(d, f) for f in os.listdir(d) if os.path.isdir(f)]
+        return [os.path.join(d, f) for f in os.listdir(d)]
     if system == "Windows":
         import string
         return ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
     if system == "Darwin":
-        return [F"/Volumes/{f}" for f in os.listdir('/Volumes') if os.path.isdir(f)]
-
-
-if __name__ == '__main__':
-    print(external_drives())
+        return [F"/Volumes/{f}" for f in os.listdir('/Volumes')]
 
 # if __name__ == '__main__':
 # content_root = "/home/elisha/Videos/Test/AVCHD"

@@ -17,8 +17,10 @@ strings = {
     "file_dialog_output_file": "Output file",
 
     # toasts
-    "toast_title_run_command": "Run Command",
-    "toast_message_command_running": "Another command is running. Please end it first.",
+    "toast_title_command": "Command",
+    "toast_message_command_already_running": "Another command is running. Please end it first.",
+    "toast_message_command_started": "Command Started.",
+    "toast_message_command_finished": "Command finished.",
 
     "toast_title_preview": "Preview",
     "toast_message_no_playlist": "No playlist selected!",
@@ -27,5 +29,8 @@ strings = {
     "toast_title_convert": "Convert",
     "toast_message_no_codec": "No codec selected!",
     "toast_message_invalid_output": "Output path not valid!",
-}
 
+    "toast_message_sequence_list_updated": "Sequence list updated",
+
+    "error": "Error"
+}

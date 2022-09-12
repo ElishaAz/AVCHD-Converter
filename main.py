@@ -1,4 +1,3 @@
-import main_window_wx
 import sys
 
 import res
@@ -11,4 +10,7 @@ if __name__ == '__main__':
             set_lang = True
     if not set_lang:
         res.set_lang("en")
+
+    import main_window_wx
+
     main_window_wx.start()

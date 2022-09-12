@@ -21,6 +21,9 @@ class StdOutDecoder:
                 self.col += 1
 
     def _set(self, row, col, char):
+        while row > len(self.lines):
+            self.lines.append([])
+
         if row >= len(self.lines):
             self.lines.append([char])
         elif col >= len(self.lines[row]):

@@ -8,7 +8,7 @@ strings = {
     "content_root_label": "שורש תוכן:",
     "browse_button": "סייר",
     "playlist_label": "פלייליסט:",
-    "sequence_label": "סירטון:",
+    "sequence_label": "סרטון:",
     "output_file_label": "קובץ פלט:",
     "preview_button": "הצג",
     "codec_label": "Codec:",
@@ -17,16 +17,22 @@ strings = {
     "file_dialog_output_file": "בחר קובץ פלט",
 
     # toasts
-    "toast_title_run_command": "פקודה",
-    "toast_message_command_running": "פקודה אחרת רצה כרגע. אנא אצור אותה קודם",
+    "toast_title_command": "פקודה",
+    "toast_message_command_already_running": "פקודה אחרת רצה כרגע. אנא אצור אותה קודם",
+    "toast_message_command_started": "הפקודה רצה",
+    "toast_message_command_finished": "הפקודה סיימה",
 
     "toast_title_preview": "הצגה",
     "toast_message_no_playlist": "לא נבחר פלייליסט!",
-    "toast_message_no_sequence": "לא נבחר סירטון!",
+    "toast_message_no_sequence": "לא נבחר סרטון!",
 
     "toast_title_convert": "המרה",
     "toast_message_no_codec": "לא נבחר Codec!",
     "toast_message_invalid_output": "קובץ פלט לא תקין!",
+
+    "toast_message_sequence_list_updated" : "רשימת סרטונים עודכנה",
+
+    "error": "שגיעה"
 }
 
 rtl= True
