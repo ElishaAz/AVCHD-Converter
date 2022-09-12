@@ -4,9 +4,12 @@ from typing import List, Optional, Iterable
 
 from avchd import decoder
 from avchd.sequence import Sequence
+import platform
 
 FFMPEG_COMMAND = "ffmpeg"
 FFPLAY_COMMAND = "ffplay"
+
+CONTENT_ROOT = ["AVCHD"]
 
 STREAMS_IN_CONTENT_ROOT = ["BDMV", "STREAM"]
 STREAM_EXT = ".MTS"
@@ -15,14 +18,26 @@ PLAYLISTS_IN_CONTENT_ROOT = ["BDMV", "PLAYLIST"]
 PLAYLIST_EXT = ".MPL"
 
 
-def get_playlists(content_root: str) -> List[str]:
-    playlists = []
-
-    content_root = os.path.join(content_root, *PLAYLISTS_IN_CONTENT_ROOT)
+def get_content_root(drive: str) -> Optional[str]:
+    if not os.path.exists(drive):
+        return None
+    content_root = os.path.join(drive, *CONTENT_ROOT)
     if not os.path.exists(content_root):
-        return playlists
-    for f in os.listdir(content_root):
-        file = os.path.join(content_root, f)
+        return None
+    playlists = os.path.join(content_root, *PLAYLISTS_IN_CONTENT_ROOT)
+    if not os.path.exists(playlists):
+        return None
+    return content_root
+
+
+def get_playlists(content_root: str) -> Optional[List[str]]:
+    playlists_path = os.path.join(content_root, *PLAYLISTS_IN_CONTENT_ROOT)
+    if not os.path.exists(playlists_path):
+        return None
+
+    playlists = []
+    for f in os.listdir(playlists_path):
+        file = os.path.join(playlists_path, f)
         if os.path.isfile(file) and file.endswith(PLAYLIST_EXT):
             playlists.append(file)
 
@@ -104,6 +119,21 @@ def convert_sequence(content_root: str, seq: Sequence, output_file: str,
 
 def run_command(command: List[str]):
     subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
+def external_drives() -> List[str]:
+    system = platform.system()
+    if system == "Linux":
+        d = F"/media/{os.getlogin()}"
+        return [os.path.join(d, f) for f in os.listdir(d) if os.path.isdir(f)]
+    if system == "Windows":
+        return ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+    if system == "Darwin":
+        return [F"/Volumes/{f}" for f in os.listdir('/Volumes') if os.path.isdir(f)]
+
+
+if __name__ == '__main__':
+    print(external_drives())
 
 # if __name__ == '__main__':
 # content_root = "/home/elisha/Videos/Test/AVCHD"

@@ -91,9 +91,13 @@ class MainWindow(wx.Frame):
         cr_row = wx.BoxSizer(wx.HORIZONTAL)
         self.label_cr = wx.StaticText(panel, label="Content Root:")
         cr_row.Add(self.label_cr, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
-        self.text_cr = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER | wx.TE_LEFT)
-        self.text_cr.Bind(wx.EVT_TEXT_ENTER, self.text_cr_enter)
-        cr_row.Add(self.text_cr, 1, wx.ALL | wx.EXPAND, 1)
+        # self.text_cr = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER | wx.TE_LEFT)
+        # self.text_cr.Bind(wx.EVT_TEXT_ENTER, self.text_cr_enter)
+        # cr_row.Add(self.text_cr, 1, wx.ALL | wx.EXPAND, 1)
+        self.combo_cr = wx.ComboBox(panel, style=wx.CB_SORT | wx.TE_PROCESS_ENTER, choices=self.combo_cr_choices())
+        self.combo_cr.Bind(wx.EVT_COMBOBOX, self.combo_cr_enter)
+        self.combo_cr.Bind(wx.EVT_TEXT_ENTER, self.combo_cr_enter)
+        cr_row.Add(self.combo_cr, 1, wx.ALL | wx.EXPAND, 1)
         self.browse_cr = wx.Button(panel, label="Browse")
         self.browse_cr.Bind(wx.EVT_BUTTON, self.browse_cr_pressed)
         cr_row.Add(self.browse_cr, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
@@ -163,7 +167,7 @@ class MainWindow(wx.Frame):
             self.toast("Preview", "No sequence selected!")
             return
         sequence = self.playlist.sequences[self.choice_sq.GetSelection()]
-        command = tools.preview_sequence(self.text_cr.GetValue(), sequence)
+        command = tools.preview_sequence(self.combo_cr.GetValue(), sequence)
         self.run_command(command)
 
     def convert(self, event: wx.CommandEvent):
@@ -182,25 +186,50 @@ class MainWindow(wx.Frame):
             self.toast("Convert", "Output path not valid!")
             return
         sequence = self.playlist.sequences[self.choice_sq.GetSelection()]
-        command = tools.convert_sequence(self.text_cr.GetValue(), sequence, file, codec)
+        command = tools.convert_sequence(self.combo_cr.GetValue(), sequence, file, codec)
         self.run_command(command)
+
+    @staticmethod
+    def combo_cr_choices() -> List[str]:
+        drives = tools.external_drives()
+        choices = []
+        for d in drives:
+            cr = tools.get_content_root(d)
+            if cr is not None:
+                choices.append(cr)
+        return choices
 
     def browse_cr_pressed(self, event: wx.CommandEvent):
         dlg = wx.DirDialog(None, "Choose content root directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
-            self.text_cr.SetValue(dlg.GetPath())
+            self.combo_cr.SetValue(dlg.GetPath())
         dlg.Destroy()
-        self.text_cr_enter(None)
+        self.combo_cr_enter(None)
 
-    def text_cr_enter(self, event):
-        is_path = os.path.exists(self.text_cr.GetValue())
-        self.playlist_paths = tools.get_playlists(self.text_cr.GetValue()) if is_path else None
+    def combo_cr_enter(self, event):
+        is_path = os.path.exists(self.combo_cr.GetValue())
+        self.playlist_paths = None
+        if is_path:
+            self.playlist_paths = tools.get_playlists(self.combo_cr.GetValue())
+        if self.playlist_paths is None:
+            is_path = False
+
         self.choice_pl.Clear()
         if is_path:
             self.choice_pl.AppendItems(self.playlist_paths)
         self.choice_pl.SetSelection(0 if is_path and len(self.playlist_paths) > 0 else wx.NOT_FOUND)
 
         self.choice_pl_changed(None)
+
+    # def text_cr_enter(self, event):
+    #     is_path = os.path.exists(self.text_cr.GetValue())
+    #     self.playlist_paths = tools.get_playlists(self.text_cr.GetValue()) if is_path else None
+    #     self.choice_pl.Clear()
+    #     if is_path:
+    #         self.choice_pl.AppendItems(self.playlist_paths)
+    #     self.choice_pl.SetSelection(0 if is_path and len(self.playlist_paths) > 0 else wx.NOT_FOUND)
+    #
+    #     self.choice_pl_changed(None)
 
     def choice_pl_changed(self, event):
         selection = self.choice_pl.GetSelection()

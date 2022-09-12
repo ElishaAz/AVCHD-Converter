@@ -54,6 +54,8 @@ class MainWindow:
                     content_root = values['_CR_INPUT_']
 
                     playlists = tools.get_playlists(content_root)
+                    if playlists is None:
+                        playlists = []
                     print(content_root, values, playlists)
                     val = playlists[0] if len(playlists) > 0 else ""
                     self.window['_PL_COMBO_'].Update(value=val, values=playlists)
@@ -73,6 +75,7 @@ class MainWindow:
             if event == "_AC_PREVIEW_" and playlist is not None:
                 sequence_index = [str(x.date) for x in playlist.sequences].index(values['_SQ_COMBO_'])
                 tools.preview_sequence(values['_CR_INPUT_'], playlist.sequences[sequence_index])
+
 
 if __name__ == '__main__':
     window = MainWindow()
