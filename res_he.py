@@ -13,7 +13,7 @@ strings = {
     "preview_button": "הצג",
     "codec_label": "Codec:",
     "convert_button": "המר",
-    "cancel_button": "עצור",
+    "stop_command_button": "עצור",
     "dir_dialog_content_root": "בחר תייקית תוכן",
     "file_dialog_output_file": "בחר קובץ פלט",
 
