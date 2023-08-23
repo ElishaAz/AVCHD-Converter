@@ -118,7 +118,7 @@ def convert_sequence(content_root: str, seq: Sequence, output_file: str,
 
 
 def run_command(command: List[str]):
-    subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
 
 
 def external_drives() -> List[str]:
